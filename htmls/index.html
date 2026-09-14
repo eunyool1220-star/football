@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FotMob - EPL Standings, Fixtures & Player Stats</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        fotmob: {
+                            bg: '#121212',
+                            card: '#1e1e1e',
+                            cardHover: '#2a2a2a',
+                            accent: '#008b43',
+                            live: '#da291c',
+                            border: '#2c2c2c',
+                            textMuted: '#888888'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-fotmob-bg text-slate-100 font-sans antialiased min-h-screen flex flex-col">
+
+    <header class="bg-fotmob-card border-b border-fotmob-border sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+            <div class="flex items-center space-x-6">
+                <a href="#" class="flex items-center space-x-2">
+                    <span class="bg-fotmob-accent text-white px-2 py-1 rounded font-black text-lg tracking-wider">FM</span>
+                    <span class="font-bold text-lg tracking-wide">FotMob EPL</span>
+                </a>
+                <nav class="hidden md:flex space-x-4 text-sm font-semibold text-slate-300">
+                    <a href="#" class="text-white border-b-2 border-fotmob-accent pb-4 pt-4">순위 및 경기</a>
+                    <a href="#" class="hover:text-white pb-4 pt-4 text-fotmob-textMuted transition">팀 스쿼드</a>
+                </nav>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-xs font-bold text-fotmob-accent bg-fotmob-accent/10 px-2.5 py-1 rounded-full">2026/27 시즌</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+
+        <div class="bg-fotmob-card rounded-xl p-5 border border-fotmob-border shadow-lg space-y-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div>
+                    <h2 class="font-bold text-base text-slate-200">🏴󠁧󠁢󠁥󠁮󠁧󠁿 프리미어리그 팀 허브</h2>
+                    <p class="text-xs text-fotmob-textMuted">팀을 선택하여 현재 순위, 다음 일정 및 주요 선수 공격 포인트를 확인하세요.</p>
+                </div>
+                <select id="team-selector" class="bg-fotmob-bg text-slate-100 text-sm font-bold rounded-lg px-4 py-2 border border-fotmob-border focus:outline-none focus:border-fotmob-accent w-full sm:w-60 cursor-pointer" onchange="updateTeamDashboard(this.value)">
+                    <option value="arsenal">아스널 (Arsenal)</option>
+                    <option value="mancity">맨체스터 시티 (Man City)</option>
+                    <option value="liverpool">리버풀 (Liverpool)</option>
+                    <option value="chelsea">첼시 (Chelsea)</option>
+                    <option value="manutd">맨체스터 유나이티드 (Man Utd)</option>
+                </select>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <div class="bg-fotmob-bg p-4 rounded-xl border border-fotmob-border space-y-2">
+                    <div class="flex items-center justify-between text-xs text-fotmob-textMuted">
+                        <span>현재 시즌 성적</span>
+                        <span class="font-bold text-fotmob-accent" id="team-rank-badge">1위 (12점)</span>
+                    </div>
+                    <div class="text-lg font-black text-slate-100" id="team-record-title">4전 4승 0무 0패 (득실 +7)</div>
+                    <div class="text-xs text-slate-400 pt-1">
+                        <i class="fa-solid fa-calendar-days text-fotmob-accent mr-1"></i> 다음 경기: <span id="team-next-match" class="text-slate-200 font-semibold">vs Chelsea (원정) | 9월 21일 22:00</span>
+                    </div>
+                </div>
+
+                <div class="bg-fotmob-bg p-4 rounded-xl border border-fotmob-border space-y-2">
+                    <div class="flex items-center justify-between text-xs text-fotmob-textMuted">
+                        <span>핵심 선수 공격 포인트</span>
+                        <span>골 / 도움</span>
+                    </div>
+                    <div id="player-stats-list" class="space-y-1.5 text-xs">
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-fotmob-card rounded-xl p-5 border border-fotmob-border space-y-4">
+            <div class="flex items-center justify-between border-b border-fotmob-border pb-3">
+                <h3 class="font-bold text-sm text-slate-200 flex items-center space-x-2">
+                    <i class="fa-solid fa-trophy text-amber-400"></i>
+                    <span>프리미어리그 실시간 순위표</span>
+                </h3>
+                <span class="text-xs text-fotmob-textMuted">Matchday 4 기준</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left">
+                    <thead class="text-fotmob-textMuted border-b border-fotmob-border">
+                        <tr>
+                            <th class="py-2.5 px-2">순위</th>
+                            <th class="py-2.5 px-2">팀명</th>
+                            <th class="py-2.5 px-2 text-center">경기</th>
+                            <th class="py-2.5 px-2 text-center">승점</th>
+                            <th class="py-2.5 px-2 text-center">득실차</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-fotmob-border/50 font-medium">
+                        <tr class="bg-fotmob-accent/10">
+                            <td class="py-2.5 px-2 font-bold text-fotmob-accent">1</td>
+                            <td class="py-2.5 px-2 font-bold text-white">Arsenal</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">4</td>
+                            <td class="py-2.5 px-2 text-center font-bold text-fotmob-accent">12</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">+7</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2.5 px-2 font-bold text-slate-400">2</td>
+                            <td class="py-2.5 px-2 font-bold text-slate-200">Manchester City</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">4</td>
+                            <td class="py-2.5 px-2 text-center font-bold text-white">12</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">+6</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2.5 px-2 font-bold text-slate-400">3</td>
+                            <td class="py-2.5 px-2 font-bold text-slate-200">Hull City</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">4</td>
+                            <td class="py-2.5 px-2 text-center font-bold text-white">8</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">+3</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2.5 px-2 font-bold text-slate-400">4</td>
+                            <td class="py-2.5 px-2 font-bold text-slate-200">Brighton</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">4</td>
+                            <td class="py-2.5 px-2 text-center font-bold text-white">7</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">+8</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2.5 px-2 font-bold text-slate-400">5</td>
+                            <td class="py-2.5 px-2 font-bold text-slate-200">Chelsea</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">4</td>
+                            <td class="py-2.5 px-2 text-center font-bold text-white">7</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">+1</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2.5 px-2 font-bold text-slate-400">6</td>
+                            <td class="py-2.5 px-2 font-bold text-slate-200">Liverpool</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">4</td>
+                            <td class="py-2.5 px-2 text-center font-bold text-white">6</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">+2</td>
+                        </tr>
+                        <tr>
+                            <td class="py-2.5 px-2 font-bold text-slate-400">13</td>
+                            <td class="py-2.5 px-2 font-bold text-slate-200">Manchester United</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">4</td>
+                            <td class="py-2.5 px-2 text-center font-bold text-white">4</td>
+                            <td class="py-2.5 px-2 text-center text-slate-300">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-fotmob-card border-t border-fotmob-border mt-auto py-6 text-center text-xs text-fotmob-textMuted">
+        <p>FotMob EPL Data Dashboard — Tailwind CSS & Dynamic JS.</p>
+    </footer>
+
+    <script>
+        const eplTeamDatabase = {
+            arsenal: {
+                rankText: "1위 (승점 12점)",
+                record: "4전 4승 0무 0패 (득실 +7)",
+                nextMatch: "vs Chelsea (원정) | 9월 21일 22:00",
+                players: [
+                    { name: "부카요 사카 (Bukayo Saka)", goals: 3, assists: 2 },
+                    { name: "가브리엘 제주스 (G. Jesus)", goals: 2, assists: 1 },
+                    { name: "마르틴 외데고르 (M. Ødegaard)", goals: 1, assists: 3 }
+                ]
+            },
+            mancity: {
+                rankText: "2위 (승점 12점)",
+                record: "4전 4승 0무 0패 (득실 +6)",
+                nextMatch: "vs Arsenal (홈) | 9월 28일 00:30",
+                players: [
+                    { name: "엘링 홀란 (Erling Haaland)", goals: 4, assists: 0 },
+                    { name: "라얀 셰르키 (Rayan Cherki)", goals: 2, assists: 2 },
+                    { name: "필 포든 (Phil Foden)", goals: 1, assists: 2 }
+                ]
+            },
+            liverpool: {
+                rankText: "7위 (승점 6점)",
+                record: "4전 1승 3무 0패 (득실 +2)",
+                nextMatch: "vs Bournemouth (홈) | 9월 21일 20:30",
+                players: [
+                    { name: "알렉산더 이삭 (Alexander Isak)", goals: 3, assists: 0 },
+                    { name: "코디 각포 (Cody Gakpo)", goals: 1, assists: 3 },
+                    { name: "도미니크 소보슬라이", goals: 1, assists: 1 }
+                ]
+            },
+            chelsea: {
+                rankText: "5위 (승점 7점)",
+                record: "4전 2승 1무 1패 (득실 +1)",
+                nextMatch: "vs Arsenal (홈) | 9월 21일 22:00",
+                players: [
+                    { name: "주앙 페드루 (João Pedro)", goals: 3, assists: 2 },
+                    { name: "모건 로저스 (Morgan Rogers)", goals: 3, assists: 1 },
+                    { name: "콜 파머 (Cole Palmer)", goals: 1, assists: 2 }
+                ]
+            },
+            manutd: {
+                rankText: "13위 (승점 4점)",
+                record: "4전 1승 1무 2패 (득실 0)",
+                nextMatch: "vs Crystal Palace (원정) | 9월 21일 19:30",
+                players: [
+                    { name: "브루누 페르난데스 (Bruno Fernandes)", goals: 3, assists: 2 },
+                    { name: "브라이언 음뵈모 (Bryan Mbeumo)", goals: 2, assists: 1 },
+                    { name: "카세미루 (Casemiro)", goals: 1, assists: 0 }
+                ]
+            }
+        };
+
+        function updateTeamDashboard(teamKey) {
+            const data = eplTeamDatabase[teamKey];
+            if (!data) return;
+
+            document.getElementById('team-rank-badge').innerText = data.rankText;
+            document.getElementById('team-record-title').innerText = data.record;
+            document.getElementById('team-next-match').innerText = data.nextMatch;
+
+            const playerListContainer = document.getElementById('player-stats-list');
+            playerListContainer.innerHTML = '';
+
+            data.players.forEach(p => {
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between bg-fotmob-card p-2 rounded border border-fotmob-border/60";
+                item.innerHTML = `
+                    <span class="font-bold text-slate-200">${p.name}</span>
+                    <span class="bg-fotmob-bg px-2 py-0.5 rounded text-fotmob-accent font-black">
+                        ⚽ ${p.goals}골 &nbsp;|&nbsp; 🅰️ ${p.assists}도움
+                    </span>
+                `;
+                playerListContainer.appendChild(item);
+            });
+        }
+
+        // 초기 실행 (아스널 선택 상태 반영)
+        updateTeamDashboard('arsenal');
+    </script>
+</body>
+</html>
